@@ -1,5 +1,5 @@
-name: InfraNest
-description: Open and close maintenance windows, pause monitors and reset a sandbox in InfraNest, from any workflow.
+name: InfraNest Maintenance Window
+description: Silence InfraNest alerts while you deploy, then turn them back on. Also pauses monitors and resets your sandbox.
 author: InfraNest
 branding:
   icon: shield
