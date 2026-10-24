@@ -1,0 +1,66 @@
+name: InfraNest
+description: Open and close maintenance windows, pause monitors and reset a sandbox in InfraNest, from any workflow.
+author: InfraNest
+branding:
+  icon: shield
+  color: blue
+
+inputs:
+  token:
+    description: An InfraNest API token with the scopes the command needs. Pass it from a secret.
+    required: true
+  organization:
+    description: Your InfraNest organization's id.
+    required: true
+  command:
+    description: "What to do: maintenance-open, maintenance-close, monitor-pause, monitor-resume or sandbox-reset."
+    required: true
+  check-ids:
+    description: "maintenance-open: the monitors to silence, comma-separated, e.g. 1201,1202."
+    required: false
+  server-ids:
+    description: "maintenance-open: the servers to silence, comma-separated."
+    required: false
+  name:
+    description: "maintenance-open: what the window is called."
+    required: false
+    default: Deploy
+  minutes:
+    description: "maintenance-open: how long at most; the window closes by itself then."
+    required: false
+    default: '30'
+  window-id:
+    description: "maintenance-close: the window to close (the window-id output of maintenance-open)."
+    required: false
+  monitor-id:
+    description: "monitor-pause and monitor-resume: the monitor."
+    required: false
+  api-url:
+    description: The API address. Leave the default unless InfraNest tells you otherwise.
+    required: false
+    default: https://api.infranest.io/api
+
+outputs:
+  window-id:
+    description: "maintenance-open: the new maintenance window's id. Pass it to maintenance-close."
+    value: ${{ steps.run.outputs.window-id }}
+
+runs:
+  using: composite
+  steps:
+    - id: run
+      shell: bash
+      env:
+        INFRANEST_TOKEN: ${{ inputs.token }}
+        INFRANEST_ORG: ${{ inputs.organization }}
+        INFRANEST_API: ${{ inputs.api-url }}
+        COMMAND: ${{ inputs.command }}
+        CHECK_IDS: ${{ inputs.check-ids }}
+        SERVER_IDS: ${{ inputs.server-ids }}
+        NAME: ${{ inputs.name }}
+        MINUTES: ${{ inputs.minutes }}
+        WINDOW_ID: ${{ inputs.window-id }}
+        MONITOR_ID: ${{ inputs.monitor-id }}
+        # One key per run attempt: a retried step opens one window, not two.
+        IDEMPOTENCY_KEY: gha-${{ github.repository }}-${{ github.run_id }}-${{ github.run_attempt }}
+      run: ${{ github.action_path }}/run.sh

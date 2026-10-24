@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    # Weekly, so a change to the API is noticed even when nothing here changes.
+    - cron: '41 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: ShellCheck
+        run: shellcheck -s sh run.sh
+
+      - name: action.yml is valid YAML with the inputs run.sh reads
+        run: |
+          python3 - <<'PY'
+          import re, yaml
+          action = yaml.safe_load(open("action.yml"))
+          inputs = set(action["inputs"])
+          used = set(re.findall(r"inputs\.([a-z-]+)", open("action.yml").read()))
+          missing = used - inputs
+          assert not missing, f"action.yml reads undefined inputs: {missing}"
+          print(f"{len(inputs)} inputs, all defined")
+          PY
+
+      - name: An unknown command fails with a clear error
+        run: |
+          if INFRANEST_TOKEN=x INFRANEST_ORG=1 COMMAND=nope ./run.sh 2>err.txt; then exit 1; fi
+          grep -q "Unknown command" err.txt
+
+      - name: Every API call matches the API description
+        run: python3 scripts/check-requests.py
