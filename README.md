@@ -129,6 +129,7 @@ warranty of any kind, under the [Apache License 2.0](LICENSE). Your use of Infra
 - [Developer documentation](https://developers.infranest.io) and the [API reference](https://developers.infranest.io/reference)
 - [infranest-examples](https://github.com/InfraNest-Infrastructure-Organized/infranest-examples): the same jobs as scripts, in shell, Python, JavaScript and PowerShell
 - [infranest-openapi](https://github.com/InfraNest-Infrastructure-Organized/infranest-openapi): the API description
+- [infranest-mcp](https://github.com/InfraNest-Infrastructure-Organized/infranest-mcp): the MCP server, so your AI assistant can read your InfraNest account
 - [Service status](https://status.infranest.io)
 
 Found a problem? Open an [issue](https://github.com/InfraNest-Infrastructure-Organized/infranest-action/issues).
