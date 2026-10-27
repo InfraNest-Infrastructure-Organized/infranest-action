@@ -41,3 +41,89 @@ jobs:
 
       - name: Every API call matches the API description
         run: python3 scripts/check-requests.py
+
+  # The action as a workflow uses it, against an InfraNest sandbox (InfraNest #4537): open a window, let the deploy
+  # step fail, close it from an `if: always()` step, and check the window really is completed. Skipped, with a
+  # notice, when the INFRANEST_TEST_TOKEN secret is not there (a fork's pull request cannot read it).
+  sandbox:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # One run at a time per sandbox: the examples repository resets the same one.
+    concurrency:
+      group: sandbox
+      cancel-in-progress: false
+    env:
+      INFRANEST_TOKEN: ${{ secrets.INFRANEST_TEST_TOKEN }}
+      INFRANEST_API: ${{ vars.INFRANEST_API_URL && format('{0}/api', vars.INFRANEST_API_URL) || 'https://api.infranest.io/api' }}
+    steps:
+      - name: Look for the sandbox token
+        id: token
+        run: |
+          if [ -z "$INFRANEST_TOKEN" ]; then
+            echo "::notice title=Sandbox run skipped::The INFRANEST_TEST_TOKEN secret is not set, so the action was not run against the sandbox."
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          case "$INFRANEST_TOKEN" in
+            *"|in_test_"*|in_test_*) echo "present=true" >> "$GITHUB_OUTPUT" ;;
+            *) echo "::error::INFRANEST_TEST_TOKEN is not a test token (in_test_…). This job only ever uses a sandbox."; exit 1 ;;
+          esac
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        if: steps.token.outputs.present == 'true'
+
+      - name: Find the sandbox and a monitor in it
+        id: sandbox
+        if: steps.token.outputs.present == 'true'
+        run: |
+          api() { curl -sS --fail-with-body -H "Authorization: Bearer $INFRANEST_TOKEN" -H "Accept: application/json" "$INFRANEST_API$1"; }
+          org=$(api /auth/me | jq -r '[.user.organizations[]? | select(.is_sandbox == true) | .id] | if length == 1 then .[0] else empty end')
+          [ -n "$org" ] || { echo "::error::The token sees no single sandbox organization."; exit 1; }
+          check=$(api "/organizations/$org/monitoring-checks?all=1" | jq -r '(.data // .) | first | .id // empty')
+          [ -n "$check" ] || { echo "::error::The sandbox has no monitor to put in a window."; exit 1; }
+          echo "org=$org" >> "$GITHUB_OUTPUT"
+          echo "check=$check" >> "$GITHUB_OUTPUT"
+
+      - name: maintenance-open
+        id: window
+        if: steps.token.outputs.present == 'true'
+        uses: ./
+        with:
+          token: ${{ env.INFRANEST_TOKEN }}
+          organization: ${{ steps.sandbox.outputs.org }}
+          api-url: ${{ env.INFRANEST_API }}
+          command: maintenance-open
+          check-ids: ${{ steps.sandbox.outputs.check }}
+          name: CI of infranest-action
+          minutes: '10'
+
+      # The deploy, failing: what the close step has to survive.
+      - name: A deploy that fails
+        id: deploy
+        if: steps.token.outputs.present == 'true'
+        continue-on-error: true
+        run: exit 1
+
+      - name: maintenance-close
+        if: always() && steps.window.outputs.window-id != ''
+        uses: ./
+        with:
+          token: ${{ env.INFRANEST_TOKEN }}
+          organization: ${{ steps.sandbox.outputs.org }}
+          api-url: ${{ env.INFRANEST_API }}
+          command: maintenance-close
+          window-id: ${{ steps.window.outputs.window-id }}
+
+      - name: The window closed although the deploy failed
+        if: steps.token.outputs.present == 'true'
+        env:
+          ORG: ${{ steps.sandbox.outputs.org }}
+          WINDOW: ${{ steps.window.outputs.window-id }}
+          DEPLOY: ${{ steps.deploy.outcome }}
+        run: |
+          [ "$DEPLOY" = failure ] || { echo "::error::The deploy step was meant to fail (it was $DEPLOY)."; exit 1; }
+          status=$(curl -sS --fail-with-body -H "Authorization: Bearer $INFRANEST_TOKEN" -H "Accept: application/json" \
+            "$INFRANEST_API/organizations/$ORG/maintenance-windows?status=all&search=infranest-action&per_page=100" \
+            | jq -r --argjson id "$WINDOW" '(.data // .)[] | select(.id == $id) | .status')
+          echo "Window $WINDOW: ${status:-not found}"
+          [ "$status" = completed ] || { echo "::error::Window $WINDOW is '${status:-not found}', not completed."; exit 1; }
