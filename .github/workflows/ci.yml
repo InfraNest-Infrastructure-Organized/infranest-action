@@ -79,7 +79,7 @@ jobs:
           api() { curl -sS --fail-with-body -H "Authorization: Bearer $INFRANEST_TOKEN" -H "Accept: application/json" "$INFRANEST_API$1"; }
           org=$(api /auth/me | jq -r '[.user.organizations[]? | select(.is_sandbox == true) | .id] | if length == 1 then .[0] else empty end')
           [ -n "$org" ] || { echo "::error::The token sees no single sandbox organization."; exit 1; }
-          check=$(api "/organizations/$org/monitoring-checks?all=1" | jq -r '(.data // .) | first | .id // empty')
+          check=$(api "/organizations/$org/monitoring-checks?all=1" | jq -r '(if type == "array" then . else .data end) | first | .id // empty')
           [ -n "$check" ] || { echo "::error::The sandbox has no monitor to put in a window."; exit 1; }
           echo "org=$org" >> "$GITHUB_OUTPUT"
           echo "check=$check" >> "$GITHUB_OUTPUT"
@@ -124,6 +124,6 @@ jobs:
           [ "$DEPLOY" = failure ] || { echo "::error::The deploy step was meant to fail (it was $DEPLOY)."; exit 1; }
           status=$(curl -sS --fail-with-body -H "Authorization: Bearer $INFRANEST_TOKEN" -H "Accept: application/json" \
             "$INFRANEST_API/organizations/$ORG/maintenance-windows?status=all&search=infranest-action&per_page=100" \
-            | jq -r --argjson id "$WINDOW" '(.data // .)[] | select(.id == $id) | .status')
+            | jq -r --argjson id "$WINDOW" '(if type == "array" then . else .data end)[] | select(.id == $id) | .status')
           echo "Window $WINDOW: ${status:-not found}"
           [ "$status" = completed ] || { echo "::error::Window $WINDOW is '${status:-not found}', not completed."; exit 1; }
