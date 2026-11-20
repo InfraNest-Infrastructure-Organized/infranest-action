@@ -21,7 +21,7 @@
 ---
 
 A deploy restarts things, and a restart looks like an outage to your monitors. This action opens a
-**maintenance window** in [InfraNest](https://infranest.io) before you deploy, so nobody is paged for it and your
+**maintenance window** in [InfraNest](https://infranest.io/?utm_source=github&utm_medium=readme&utm_campaign=infranest-action) before you deploy, so nobody is paged for it and your
 status page says what is going on, and closes it again afterwards, even when the deploy fails.
 
 ## Quick start
@@ -70,7 +70,7 @@ there, the window still closes by itself after `minutes`.
 4. Find the ids of the monitors to silence in InfraNest, or with `GET /organizations/{org}/monitoring-checks`.
 
 Try it against your free **sandbox** first: create a test token there, use the sandbox's id as the organization,
-and nothing reaches the internet. See the [sandbox guide](https://developers.infranest.io/sandbox).
+and nothing reaches the internet. See the [sandbox guide](https://developers.infranest.io/sandbox?utm_source=github&utm_medium=readme&utm_campaign=infranest-action).
 
 ## Commands
 
@@ -122,18 +122,18 @@ Releases are listed under [Releases](https://github.com/InfraNest-Infrastructure
 This action changes real things in your InfraNest organization with your token. You are responsible for what it is
 asked to do, and for keeping the token safe; give it only the scopes it needs. It is provided "as is", without
 warranty of any kind, under the [Apache License 2.0](LICENSE). Your use of InfraNest is governed by its
-[Terms of Service](https://infranest.io/terms).
+[Terms of Service](https://infranest.io/terms/?utm_source=github&utm_medium=readme&utm_campaign=infranest-action).
 
 ## Links
 
-- [Developer documentation](https://developers.infranest.io) and the [API reference](https://developers.infranest.io/reference)
+- [Developer documentation](https://developers.infranest.io/?utm_source=github&utm_medium=readme&utm_campaign=infranest-action) and the [API reference](https://developers.infranest.io/reference?utm_source=github&utm_medium=readme&utm_campaign=infranest-action)
 - [infranest-examples](https://github.com/InfraNest-Infrastructure-Organized/infranest-examples): the same jobs as scripts, in shell, Python, JavaScript and PowerShell
 - [infranest-openapi](https://github.com/InfraNest-Infrastructure-Organized/infranest-openapi): the API description
 - [infranest-mcp](https://github.com/InfraNest-Infrastructure-Organized/infranest-mcp): the MCP server, so your AI assistant can read your InfraNest account
 - [Service status](https://status.infranest.io)
 
 Found a problem? Open an [issue](https://github.com/InfraNest-Infrastructure-Organized/infranest-action/issues).
-For a security issue in InfraNest, see [infranest.io/security](https://infranest.io/security).
+For a security issue in InfraNest, see [infranest.io/security](https://infranest.io/security/?utm_source=github&utm_medium=readme&utm_campaign=infranest-action).
 
 ## Licence
 
