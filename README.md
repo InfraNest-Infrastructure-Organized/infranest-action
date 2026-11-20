@@ -70,7 +70,7 @@ there, the window still closes by itself after `minutes`.
 4. Find the ids of the monitors to silence in InfraNest, or with `GET /organizations/{org}/monitoring-checks`.
 
 Try it against your free **sandbox** first: create a test token there, use the sandbox's id as the organization,
-and nothing reaches the internet. See the [sandbox guide](https://developers.infranest.io/sandbox).
+and nothing reaches the internet. See the [sandbox guide](https://developers.infranest.io/sandbox?utm_source=github&utm_medium=readme&utm_campaign=infranest-action).
 
 ## Commands
 
@@ -126,7 +126,7 @@ warranty of any kind, under the [Apache License 2.0](LICENSE). Your use of Infra
 
 ## Links
 
-- [Developer documentation](https://developers.infranest.io) and the [API reference](https://developers.infranest.io/reference)
+- [Developer documentation](https://developers.infranest.io/?utm_source=github&utm_medium=readme&utm_campaign=infranest-action) and the [API reference](https://developers.infranest.io/reference?utm_source=github&utm_medium=readme&utm_campaign=infranest-action)
 - [infranest-examples](https://github.com/InfraNest-Infrastructure-Organized/infranest-examples): the same jobs as scripts, in shell, Python, JavaScript and PowerShell
 - [infranest-openapi](https://github.com/InfraNest-Infrastructure-Organized/infranest-openapi): the API description
 - [infranest-mcp](https://github.com/InfraNest-Infrastructure-Organized/infranest-mcp): the MCP server, so your AI assistant can read your InfraNest account
